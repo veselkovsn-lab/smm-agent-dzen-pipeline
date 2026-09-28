@@ -20,6 +20,7 @@ python tools/publish_release.py auth-telegram
 ```
 
 Создайте локальный `.env` по `.env.example`. YouTube: `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET` от OAuth Web application и ID канала; в Google Cloud добавьте Authorized redirect URI `http://localhost:8765/` (со слешем). Authorized JavaScript origins для этого способа не нужны. Вместо пары ID/Secret можно оставить резервный OAuth Desktop JSON. Telegram: api_id/api_hash и пользовательский вход с правом публикации. Дзен: браузерная сессия. BotFather не используется.
+[Локальный вход и read-only проверка YouTube/Telegram](docs/account-access.md) описывают OAuth-туннель, MTProto-сессию и отчёты `doctor --online` без публикаций.
 [Единая спецификация](docs/specs/content-release.md) содержит подробные инструкции, manifest и CLI.
 
 Секреты — в `.env` и `.local/auth/`, вне Git. Встроенной генерации обложек API-ключ не нужен. Для монтажа нужны FFmpeg и зависимости навыка рендера.

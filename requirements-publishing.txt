@@ -4,3 +4,4 @@ Telethon>=1.45,<2
 python-dotenv>=1,<2
 python-docx>=1,<2
 tzdata>=2025.1
+playwright>=1.50,<2
