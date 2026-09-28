@@ -24,6 +24,7 @@ if ($browser) {
 }
 
 $chromeCandidates = @(
+    $env:CHROME_BINARY,
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
     "$env:LocalAppData\Google\Chrome\Application\chrome.exe"
@@ -37,8 +38,8 @@ $chromePath = $chromeCandidates | Select-Object -First 1
 New-Item -ItemType Directory -Force -Path $ProfilePath | Out-Null
 $chromeArguments = @(
     "--remote-debugging-port=$Port",
-    '--remote-allow-origins=*',
-    "--user-data-dir=$ProfilePath",
+    '--remote-debugging-address=127.0.0.1',
+    ('--user-data-dir="' + $ProfilePath + '"'),
     '--no-first-run',
     '--no-default-browser-check',
     'https://dzen.ru'
@@ -46,7 +47,7 @@ $chromeArguments = @(
 
 # Do not close or reuse the user's ordinary Chrome windows. The dedicated profile
 # retains the Dzen session that was created during the initial interactive login.
-Start-Process -FilePath $chromePath -ArgumentList $chromeArguments -WindowStyle Hidden
+Start-Process -FilePath $chromePath -ArgumentList $chromeArguments -WindowStyle Normal
 
 $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 do {

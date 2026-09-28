@@ -20,7 +20,7 @@ dzen-publish — автоматическая публикация статьи 
 """
 import argparse, asyncio, json, subprocess, tempfile, os, re, sys
 from datetime import datetime
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 # ─── НАСТРОЙКИ ────────────────────────────────────────────────────────────────
 CHANNEL_URL = "https://dzen.ru/profile/editor/ekonomikadliavseh"
@@ -201,11 +201,11 @@ async def wait_for_ces(page, min_count=2, timeout_ms=15000):
     return await page.evaluate("document.querySelectorAll('[contenteditable]').length")
 
 
-async def open_new_article(page):
-    """
-    Навигируемся на страницу канала и открываем новую статью через кнопку + в хедере.
-    Возвращает URL нового черновика.
-    """
+async def open_channel(page, channel_url=None):
+    """Shared read-only navigation; no editor clicks or draft creation."""
+    target = channel_url or CHANNEL_URL
+    if page.url.rstrip('/') == target.rstrip('/'):
+        return
     # Переходим на dzen.ru если нужно
     if not page.url.startswith("https://dzen.ru"):
         log("  goto dzen.ru...")
@@ -213,15 +213,14 @@ async def open_new_article(page):
         await page.wait_for_timeout(2000)
 
     # Навигируемся на страницу канала (SPA)
-    await page.evaluate("url => { window.location.href = url; }", CHANNEL_URL)
-
-    # Ждём загрузки страницы канала
-    for _ in range(20):
-        await page.wait_for_timeout(500)
-        body_len = await page.evaluate("document.body ? document.body.innerHTML.length : 0")
-        if body_len > 5000:
-            break
+    async with page.expect_navigation(wait_until='domcontentloaded', timeout=25000):
+        await page.evaluate("url => { window.location.href = url; }", target)
     log(f"  channel page loaded, url={page.url[-50:]}")
+
+
+async def open_new_article(page):
+    """Open the channel and create a draft using the upstream editor controls."""
+    await open_channel(page)
 
     # Кликаем кнопку «+» в хедере → появляется меню «Написать статью».
     # Селектор устойчивее к масштабу, а координаты оставлены для старого редактора.
